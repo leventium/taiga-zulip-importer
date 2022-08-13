@@ -5,18 +5,12 @@ from modules.data_structures import TaigaWebhook
 from modules.exceptions import EmptyConfigField
 
 
-cfg = ConfigParser()
-cfg.read("config.ini")
-if "" in cfg["SETTINGS"]:
-    raise EmptyConfigField
-stream_name = cfg["SETTINGS"]["STREAM_NAME"]
-topic_name = cfg["SETTINGS"]["TOPIC_NAME"]
 app = FastAPI()
 client = zulip.Client(config_file="zuliprc")
 
 
-@app.post("/zulip_webhook")
-def webhook_endpoint(data: TaigaWebhook):
+@app.post("/{stream_name}/{topic_name}")
+def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
     if data["action"] != "change" or data["type"] != "task":
         return
     msg = {
