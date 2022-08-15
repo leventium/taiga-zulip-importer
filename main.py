@@ -9,7 +9,7 @@ cfg = ConfigParser()
 cfg.read("config.ini")
 if "" in cfg["SETTINGS"].values():
     raise EmptyConfigField()
-router = APIRouter(prefix=cfg["SETTINGS"]["ROOT_PATH"])
+router = APIRouter(prefix=cfg["SETTINGS"]["ROOT_PATH"].rstrip("/"))
 app = FastAPI()
 client = zulip.Client(config_file="zuliprc")
 
