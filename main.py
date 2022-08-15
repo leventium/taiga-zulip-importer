@@ -16,6 +16,7 @@ client = zulip.Client(config_file="myzuliprc")
 
 @router.post("/{stream_name}/{topic_name}")
 def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
+    data = data.dict()
     if data["action"] != "change" or data["type"] != "task":
         return
 
