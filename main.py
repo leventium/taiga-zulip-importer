@@ -6,17 +6,19 @@ from modules.exceptions import EmptyConfigField
 
 
 cfg = ConfigParser()
-cfg.read("myset.ini")
+cfg.read("config.ini")
 if "" in cfg["SETTINGS"].values():
     raise EmptyConfigField()
 router = APIRouter(prefix=cfg["SETTINGS"]["ROOT_PATH"])
 app = FastAPI()
-client = zulip.Client(config_file="myzuliprc")
+client = zulip.Client(config_file="zuliprc")
 
 
 @router.post("/{stream_name}/{topic_name}")
 def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
     data = data.dict()
+    stream_name = " ".join(stream_name.split("_"))
+    topic_name = " ".join(topic_name.split("_"))
     if data["action"] != "change" or data["type"] != "task":
         return
 
@@ -33,7 +35,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
             f"Проект: `{project_name}`\n"
             f"ПИ: `{us_name}`\n"
             f"Задача: `{task_name}`\n\n"
-            f"**{initiator_full_name}** изменил статус задачи с "
+            f"@_**{initiator_full_name}** изменил статус задачи с "
             f"`{diff['from']}` на `{diff['to']}`."
         )
     elif data["change"]["comment"] != "":
@@ -42,7 +44,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
             f"Проект: `{project_name}`\n"
             f"ПИ: `{us_name}`\n"
             f"Задача: `{task_name}`\n\n"
-            f"**{initiator_full_name}** оставил комментарий к задаче:\n"
+            f"@_**{initiator_full_name}** оставил комментарий к задаче:\n"
             f"{comment}"
         )
 
