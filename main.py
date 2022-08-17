@@ -33,7 +33,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
         diff = data["change"]["diff"]["status"]
         text = (
             f"Проект: `{project_name}`\n"
-            f"ПИ: `{us_name}`\n"
+            f"US: `{us_name}`\n"
             f"Задача: `{task_name}`\n\n"
             f"@_**{initiator_full_name}** изменил статус задачи с "
             f"`{diff['from']}` на `{diff['to']}`."
@@ -42,7 +42,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
         comment = data["change"]["comment"]
         text = (
             f"Проект: `{project_name}`\n"
-            f"ПИ: `{us_name}`\n"
+            f"US: `{us_name}`\n"
             f"Задача: `{task_name}`\n\n"
             f"@_**{initiator_full_name}** оставил комментарий к задаче:\n"
             f"{comment}"
