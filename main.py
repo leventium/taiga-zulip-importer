@@ -39,7 +39,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
             f"**Изменение статуса:** `{diff['from']}` -> `{diff['to']}`"
         )
     elif data["change"]["comment"] != "":
-        if data["delete_comment_date"] is not None:
+        if data["change"]["delete_comment_date"] is not None:
             return
         comment = data["change"]["comment"]
         text = (
