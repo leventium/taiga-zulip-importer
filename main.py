@@ -17,8 +17,8 @@ client = zulip.Client(config_file="zuliprc")
 @router.post("/{stream_name}/{topic_name}")
 def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
     data = data.dict()
-    stream_name = " ".join(stream_name.split("_"))
-    topic_name = " ".join(topic_name.split("_"))
+    stream_name.replace("_", " ")
+    topic_name.replace("_", " ")
     if data["action"] != "change" or data["type"] != "task":
         return
 
@@ -41,7 +41,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
     elif data["change"]["comment"] != "":
         if data["change"]["delete_comment_date"] is not None:
             return
-        comment = data["change"]["comment"]
+        comment = data["change"]["comment"].replace("//", "")
         text = (
             f"**Project:** {project_name}\n"
             f"**Userstory:** {us_name}\n"
