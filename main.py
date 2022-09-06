@@ -1,15 +1,10 @@
 from configparser import ConfigParser
 from typing import List
+import re
 from fastapi import FastAPI, APIRouter
 import zulip
 from modules.data_structures import TaigaWebhook
 from modules.exceptions import EmptyConfigField
-
-
-def remove_symbols(text: str, symbols: List[str]) -> str:
-    for c in symbols:
-        text = text.replace(f"\\{c}", f"{c}")
-    return text
 
 
 cfg = ConfigParser()
@@ -17,7 +12,6 @@ cfg.read("config.ini")
 if "" in cfg["SETTINGS"].values():
     raise EmptyConfigField()
 router = APIRouter(prefix=cfg["SETTINGS"]["ROOT_PATH"].rstrip("/"))
-symbols = cfg["SETTINGS"]["SPECIAL_SYMBOLS"].split()
 app = FastAPI()
 client = zulip.Client(config_file="zuliprc")
 
@@ -49,7 +43,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
     elif data["change"]["comment"] != "":
         if data["change"]["delete_comment_date"] is not None:
             return
-        comment = remove_symbols(data["change"]["comment"], symbols)
+        comment = re.sub(r"\\\\(\S)", r"\1", data["change"]["comment"])
         text = (
             f"**Project:** {project_name}\n"
             f"**Userstory:** {us_name}\n"
