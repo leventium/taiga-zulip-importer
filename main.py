@@ -43,7 +43,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
     elif data["change"]["comment"] != "":
         if data["change"]["delete_comment_date"] is not None:
             return
-        comment = re.sub(r"\\\\(\S)", r"\1", data["change"]["comment"])
+        comment = re.sub(r"\\(\S)", r"\1", data["change"]["comment"])
         text = (
             f"**Project:** {project_name}\n"
             f"**Userstory:** {us_name}\n"
