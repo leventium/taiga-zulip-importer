@@ -1,4 +1,6 @@
 from configparser import ConfigParser
+from typing import List
+import re
 from fastapi import FastAPI, APIRouter
 import zulip
 from modules.data_structures import TaigaWebhook
@@ -17,8 +19,8 @@ client = zulip.Client(config_file="zuliprc")
 @router.post("/{stream_name}/{topic_name}")
 def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
     data = data.dict()
-    stream_name = " ".join(stream_name.split("_"))
-    topic_name = " ".join(topic_name.split("_"))
+    stream_name = stream_name.replace("_", " ")
+    topic_name = topic_name.replace("_", " ")
     if data["action"] != "change" or data["type"] != "task":
         return
 
@@ -36,17 +38,18 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
             f"**Userstory:** {us_name}\n"
             f"**Task:** {task_name}\n"
             f"**User:** @_**{initiator_full_name}**\n\n"
-            f"**Изменение статуса:** **{diff['from']}** -> **{diff['to']}**"
+            f"**Изменение статуса:** `{diff['from']}` -> `{diff['to']}`"
         )
     elif data["change"]["comment"] != "":
-        comment = data["change"]["comment"]
+        if data["change"]["delete_comment_date"] is not None:
+            return
+        comment = re.sub(r"\\(\S)", r"\1", data["change"]["comment"])
         text = (
             f"**Project:** {project_name}\n"
             f"**Userstory:** {us_name}\n"
             f"**Task:** {task_name}\n"
             f"**User:** @_**{initiator_full_name}**\n\n"
-            f"**Комментарий:**\n"
-            f"```spoiler\n{comment}\n```"
+            f"```spoiler Комментарий\n{comment}\n```"
         )
 
     msg = {
