@@ -1,22 +1,14 @@
-from configparser import ConfigParser
-from typing import List
 import re
-from fastapi import FastAPI, APIRouter
 import zulip
+from fastapi import FastAPI
 from data_structures import TaigaWebhook
-from exceptions import EmptyConfigField
 
 
-cfg = ConfigParser()
-cfg.read("config.ini")
-if "" in cfg["SETTINGS"].values():
-    raise EmptyConfigField()
-router = APIRouter(prefix=cfg["SETTINGS"]["ROOT_PATH"].rstrip("/"))
 app = FastAPI()
 client = zulip.Client(config_file="zuliprc")
 
 
-@router.post("/{stream_name}/{topic_name}")
+@app.post("/{stream_name}/{topic_name}")
 def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
     data = data.dict()
     stream_name = stream_name.replace("_", " ")
@@ -59,6 +51,3 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
         "content": text
     }
     client.send_message(msg)
-
-
-app.include_router(router)
