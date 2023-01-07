@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "239-taiga-webhooks-middleware"
+version = "0.1.0"
+description = "HTTP Endpoint for Taiga that send messages in Zulip."
+authors = ["Leon"]
+readme = "README.md"
+packages = [{include = "239_taiga_webhooks_middleware"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.88.0"
+zulip = "^0.8.2"
+uvicorn = "^0.20.0"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.0.0"
+pytest = "^7.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
