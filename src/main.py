@@ -3,8 +3,8 @@ from typing import List
 import re
 from fastapi import FastAPI, APIRouter
 import zulip
-from modules.data_structures import TaigaWebhook
-from modules.exceptions import EmptyConfigField
+from data_structures import TaigaWebhook
+from exceptions import EmptyConfigField
 
 
 cfg = ConfigParser()
