@@ -1,3 +1,4 @@
+import os
 import re
 import zulip
 from fastapi import FastAPI
@@ -5,7 +6,11 @@ from data_structures import TaigaWebhook
 
 
 app = FastAPI()
-client = zulip.Client(config_file="zuliprc")
+client = zulip.Client(
+    email=os.environ["BOT_EMAIL"],
+    api_key=os.environ["BOT_TOKEN"],
+    site=os.environ["ZULIP_URL"]
+)
 
 
 @app.post("/{stream_name}/{topic_name}")
