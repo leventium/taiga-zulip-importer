@@ -25,6 +25,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
     initiator_full_name = data["by"]["full_name"]
     us_name = data["data"]["user_story"]["subject"]
     task_name = data["data"]["subject"]
+    task_link = data["data"]["permalink"]
 
     if data["change"]["diff"] != {}:
         if "status" not in data["change"]["diff"]:
@@ -33,7 +34,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
         text = (
             f"**Project:** {project_name}\n"
             f"**Userstory:** {us_name}\n"
-            f"**Task:** {task_name}\n"
+            f"**Task:** [{task_name}]({task_link})\n"
             f"**User:** @_**{initiator_full_name}**\n\n"
             f"**Изменение статуса:** `{diff['from']}` -> `{diff['to']}`"
         )
@@ -44,7 +45,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
         text = (
             f"**Project:** {project_name}\n"
             f"**Userstory:** {us_name}\n"
-            f"**Task:** {task_name}\n"
+            f"**Task:** [{task_name}]({task_link})\n"
             f"**User:** @_**{initiator_full_name}**\n\n"
             f"```spoiler Комментарий\n{comment}\n```"
         )
