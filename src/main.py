@@ -1,11 +1,13 @@
 import os
 import re
 import zulip
+import uvicorn
 from fastapi import FastAPI
 from data_structures import TaigaWebhook
 
 
 app = FastAPI()
+PATTERN = re.compile(r"\\(\S)")
 client = zulip.Client(
     email=os.environ["BOT_EMAIL"],
     api_key=os.environ["BOT_TOKEN"],
@@ -21,8 +23,18 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
     if data["action"] != "change" or data["type"] != "task":
         return
 
+    name_list = data["by"]["full_name"].split()
+    match len(name_list):
+        case 3:
+            initiator_full_name = (
+                f"@_**{' '.join([name_list[1], name_list[0]])}**"
+            )
+        case 2:
+            initiator_full_name = f"@_**{data['by']['full_name']}**"
+        case _:
+            initiator_full_name = f"**{data['by']['full_name']}**"
+
     project_name = data["data"]["project"]["name"]
-    initiator_full_name = data["by"]["full_name"]
     us_name = data["data"]["user_story"]["subject"]
     task_name = data["data"]["subject"]
     task_link = data["data"]["permalink"]
@@ -35,18 +47,18 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
             f"**Project:** {project_name}\n"
             f"**Userstory:** {us_name}\n"
             f"**Task:** [{task_name}]({task_link})\n"
-            f"**User:** @_**{initiator_full_name}**\n\n"
+            f"**User:** {initiator_full_name}\n\n"
             f"**Изменение статуса:** `{diff['from']}` -> `{diff['to']}`"
         )
     elif data["change"]["comment"] != "":
         if data["change"]["delete_comment_date"] is not None:
             return
-        comment = re.sub(r"\\(\S)", r"\1", data["change"]["comment"])
+        comment = PATTERN.sub(r"\1", data["change"]["comment"])
         text = (
             f"**Project:** {project_name}\n"
             f"**Userstory:** {us_name}\n"
             f"**Task:** [{task_name}]({task_link})\n"
-            f"**User:** @_**{initiator_full_name}**\n\n"
+            f"**User:** {initiator_full_name}\n\n"
             f"```spoiler Комментарий\n{comment}\n```"
         )
 
@@ -57,3 +69,6 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
         "content": text
     }
     client.send_message(msg)
+
+
+uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
