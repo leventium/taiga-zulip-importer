@@ -2,12 +2,14 @@ import os
 import re
 import zulip
 import uvicorn
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from data_structures import TaigaWebhook
 
 
 app = FastAPI()
 PATTERN = re.compile(r"\\(\S)")
+load_dotenv()
 client = zulip.Client(
     email=os.environ["BOT_EMAIL"],
     api_key=os.environ["BOT_TOKEN"],
