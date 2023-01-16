@@ -1,24 +1,36 @@
 import os
 import re
-import zulip
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from data_structures import TaigaWebhook
+from zulip_interface import ZulipInterface
 
 
 app = FastAPI()
 PATTERN = re.compile(r"\\(\S)")
 load_dotenv()
-client = zulip.Client(
-    email=os.environ["BOT_EMAIL"],
-    api_key=os.environ["BOT_TOKEN"],
-    site=os.environ["ZULIP_URL"]
-)
+client = None
+
+
+@app.on_event("startup")
+async def start():
+    global client
+    client = ZulipInterface(
+        email=os.environ["BOT_EMAIL"],
+        api_key=os.environ["BOT_TOKEN"],
+        site=os.environ["ZULIP_URL"]
+    )
+
+
+@app.on_event("shutdown")
+async def stop():
+    await client.close()
 
 
 @app.post("/{stream_name}/{topic_name}")
-def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
+async def webhook_endpoint(stream_name: str,
+                           topic_name: str, data: TaigaWebhook):
     data = data.dict()
     stream_name = stream_name.replace("_", " ")
     topic_name = topic_name.replace("_", " ")
@@ -70,7 +82,7 @@ def webhook_endpoint(stream_name: str, topic_name: str, data: TaigaWebhook):
         "topic": topic_name,
         "content": text
     }
-    client.send_message(msg)
+    await client.send_message(msg)
 
 
 uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
