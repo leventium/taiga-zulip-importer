@@ -1,25 +1,10 @@
 """
-Module with some functions...
+Module with formatting functions.
 """
 import re
-from zulip_interface import ZulipInterface
 
 
-PATTERN = re.compile(r"\\(\S)")
-
-
-async def get_username_from_cache(redis, client: ZulipInterface, slug: str):
-    username = await redis.hget("users", slug)
-    if username is not None:
-        return username
-    all_users = await client.get_all_users()
-    users_hash = {
-        user["email"].split("@")[0]: user["full_name"]
-        for user in all_users["members"]
-    }
-    await redis.delete("users")
-    await redis.hset("users", mapping=users_hash)
-    return users_hash.get(slug)
+REGEX_PATTERN = re.compile(r"\\(\S)")
 
 
 async def create_msg_text_by_data(data: dict, full_name: str):
@@ -42,7 +27,7 @@ async def create_msg_text_by_data(data: dict, full_name: str):
     elif data["change"]["comment"] != "":
         if data["change"]["delete_comment_date"] is not None:
             return
-        comment = PATTERN.sub(r"\1", data["change"]["comment"])
+        comment = REGEX_PATTERN.sub(r"\1", data["change"]["comment"])
         text = (
             f"**Project:** {project_name}\n"
             f"**Userstory:** {us_name}\n"

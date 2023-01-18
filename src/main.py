@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from data_structures import TaigaWebhook
 from zulip_interface import ZulipInterface
-from functions import get_username_from_cache, create_msg_text_by_data
+from caching import get_username_from_cache
+from formatting import create_msg_text_by_data
 
 
 app = FastAPI()
@@ -39,8 +40,11 @@ async def stop():
 
 
 @app.post("/{stream_name}/{topic_name}")
-async def webhook_endpoint(stream_name: str,
-                           topic_name: str, data: TaigaWebhook):
+async def webhook_endpoint(
+            stream_name: str,
+            topic_name: str,
+            data: TaigaWebhook
+        ):
     data = data.dict()
     if data["action"] != "change" or data["type"] != "task":
         return
