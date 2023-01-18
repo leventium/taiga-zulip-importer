@@ -10,3 +10,7 @@ services:
       - ZULIP_URL=
       - BOT_EMAIL=
       - BOT_TOKEN=
+      - REDIS_CONNSTRING=redis://redis
+  redis:
+    image: "redis:alpine"
+    restart: always
