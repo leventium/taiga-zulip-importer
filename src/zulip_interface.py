@@ -20,3 +20,7 @@ class ZulipInterface:
     async def get_user_by_email(self, email: str) -> dict | None:
         res = await self.client.get(f"/api/v1/users/{email}")
         return res.json() if res.status_code == 200 else None
+
+    async def get_all_users(self) -> dict | None:
+        res = await self.client.get("/api/v1/users")
+        return res.json() if res.status_code == 200 else None

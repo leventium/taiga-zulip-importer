@@ -8,11 +8,18 @@ from zulip_interface import ZulipInterface
 PATTERN = re.compile(r"\\(\S)")
 
 
-async def find_zulip_username_by_slug(client: ZulipInterface, slug: str):
-    for mail_url in ("@edu.hse.ru", "@miem.hse.ru", "@hse.ru"):
-        res = await client.get_user_by_email(slug + mail_url)
-        if res is not None:
-            return res["user"]["full_name"]
+async def get_username_from_cache(redis, client: ZulipInterface, slug: str):
+    username = await redis.hget("users", slug)
+    if username is not None:
+        return username
+    all_users = await client.get_all_users()
+    users_hash = {
+        user["email"].split("@")[0]: user["full_name"]
+        for user in all_users["members"]
+    }
+    await redis.delete("users")
+    await redis.hset("users", mapping=users_hash)
+    return users_hash.get(slug)
 
 
 async def create_msg_text_by_data(data: dict, full_name: str):
