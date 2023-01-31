@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from data_structures import TaigaWebhook
 from zulip_interface import ZulipInterface
-from caching import get_username_from_cache
+from caching import get_username_from_cache, refrash_usernames_in_caches
 from formatting import create_msg_text_by_data
 
 
@@ -43,19 +43,23 @@ async def stop():
 async def webhook_endpoint(
             stream_name: str,
             topic_name: str,
-            data: TaigaWebhook
-        ):
+            data: TaigaWebhook):
     data = data.dict()
     if data["action"] != "change" or data["type"] != "task":
         return
     stream_name = stream_name.replace("_", " ")
     topic_name = topic_name.replace("_", " ")
 
-    full_name = await get_username_from_cache(
-        redis,
-        client,
-        data["by"]["username"]
-    )
+    full_name = await get_username_from_cache(redis, data["by"]["username"])
+    if full_name is None:
+        all_users = await client.get_all_users()
+        users_hash = {
+            user["email"].split("@")[0]: user["full_name"]
+            for user in all_users["members"]
+        }
+        await refrash_usernames_in_caches(redis, users_hash)
+        full_name = users_hash.get(data["by"]["username"])
+
     if full_name is not None:
         full_name = f"@_**{full_name}**"
     else:
