@@ -3,40 +3,36 @@ Main module of service where executing starts.
 """
 import os
 import uvicorn
-import aioredis
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from data_structures import TaigaWebhook
 from zulip_interface import ZulipInterface
-from caching import get_username_from_cache, refrash_usernames_in_caches
+from caching import Cache
 from formatting import create_msg_text_by_data
 
 
 app = FastAPI()
 load_dotenv()
 client = None
-redis = None
+cache = None
 
 
 @app.on_event("startup")
 async def start():
     global client
-    global redis
+    global cache
     client = ZulipInterface(
         email=os.environ["BOT_EMAIL"],
         api_key=os.environ["BOT_TOKEN"],
         site=os.environ["ZULIP_URL"]
     )
-    redis = aioredis.from_url(
-        os.environ["REDIS_CONNSTRING"],
-        decode_responses=True
-    )
+    cache = Cache(os.environ["REDIS_CONNSTRING"], "users")
 
 
 @app.on_event("shutdown")
 async def stop():
     await client.close()
-    await redis.close()
+    await cache.close()
 
 
 @app.post("/{stream_name}/{topic_name}")
@@ -50,14 +46,14 @@ async def webhook_endpoint(
     stream_name = stream_name.replace("_", " ")
     topic_name = topic_name.replace("_", " ")
 
-    full_name = await get_username_from_cache(redis, data["by"]["username"])
+    full_name = await cache.get_name(data["by"]["username"])
     if full_name is None:
         all_users = await client.get_all_users()
         users_hash = {
             user["email"].split("@")[0]: user["full_name"]
             for user in all_users["members"]
         }
-        await refrash_usernames_in_caches(redis, users_hash)
+        await cache.put_hash(users_hash)
         full_name = users_hash.get(data["by"]["username"])
 
     if full_name is not None:
