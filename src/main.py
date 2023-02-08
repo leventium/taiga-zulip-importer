@@ -46,14 +46,14 @@ async def webhook_endpoint(
     stream_name = stream_name.replace("_", " ")
     topic_name = topic_name.replace("_", " ")
 
-    full_name = await cache.get_name(data["by"]["username"])
+    full_name = await cache.get(data["by"]["username"])
     if full_name is None:
         all_users = await client.get_all_users()
         users_hash = {
             user["email"].split("@")[0]: user["full_name"]
             for user in all_users["members"]
         }
-        await cache.put_hash(users_hash)
+        await cache.set(users_hash)
         full_name = users_hash.get(data["by"]["username"])
 
     if full_name is not None:

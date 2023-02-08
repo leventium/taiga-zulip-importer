@@ -12,9 +12,9 @@ class Cache:
     async def close(self):
         await self.redis.close()
 
-    async def get_name(self, slug: str) -> str:
+    async def get(self, slug: str) -> str:
         return await self.redis.hget(self.users_table_name, slug)
 
-    async def put_hash(self, data: dict[str, str]) -> None:
+    async def set(self, data: dict[str, str]) -> None:
         await self.redis.delete(self.users_table_name)
         await self.redis.hset(self.users_table_name, mapping=data)
