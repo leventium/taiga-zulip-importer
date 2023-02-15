@@ -1,5 +1,5 @@
-.venv/
-myset.ini
-myzuliprc
-__pycache__/
-modules/__pycache__/
+.venv
+**/__pycache__
+**/.DS_Store
+.env
+docker-compose.dev.yaml

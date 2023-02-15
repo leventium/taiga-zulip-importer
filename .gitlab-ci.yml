@@ -1,0 +1,12 @@
+include:
+  - project: "370/ci-configs"
+    file: /python.yml
+
+stages:
+  - check
+
+flake8:
+  variables:
+    LINT_PATH: ./src
+  extends: .flake8
+  stage: check
